@@ -3,6 +3,7 @@ import { Menu } from "antd";
 import Link from "next/link";
 import {
   AppstoreOutlined,
+  CoffeeOutlined,
   LoginOutlined,
   LogoutOutlined,
   UserAddOutlined,
@@ -12,12 +13,14 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 
-const { Item } = Menu;
+const { Item, SubMenu } = Menu;
 
 const TopNav = () => {
   const [current, setCurrent] = useState("");
 
-  const { state, dispatch } = useContext(Context);
+  const { state, dispatch } = useContext(Context)
+
+  const { user } = state
 
   const router = useRouter();
 
@@ -45,29 +48,44 @@ const TopNav = () => {
         </Link>
       </Item>
 
-      <Item
-        key="/login"
-        onClick={(e) => setCurrent(e.key)}
-        icon={<LoginOutlined />}
-      >
-        <Link href="/login">
-          <a>Login</a>
-        </Link>
-      </Item>
+      {user === null && (
+        <>
+          <Item
+            key="/login"
+            onClick={(e) => setCurrent(e.key)}
+            icon={<LoginOutlined />}
+          >
+            <Link href="/login">
+              <a>Login</a>
+            </Link>
+          </Item>
 
-      <Item
-        key="/register"
-        onClick={(e) => setCurrent(e.key)}
-        icon={<UserAddOutlined />}
-      >
-        <Link href="/register">
-          <a>Register</a>
-        </Link>
-      </Item>
+          <Item
+            key="/register"
+            onClick={(e) => setCurrent(e.key)}
+            icon={<UserAddOutlined />}
+          >
+            <Link href="/register">
+              <a>Register</a>
+            </Link>
+          </Item>
+        </>
+      )}
 
-      <Item onClick={logout} icon={<LogoutOutlined />} style={{ marginLeft: 'auto' }} className="float-right">
-        Logout
-      </Item>
+      {user !== null && (
+        <>
+          <SubMenu key="Submenu" icon={<CoffeeOutlined />} title={user && user.name} style={{ marginLeft: 'auto' }}>
+            <Menu.ItemGroup>
+              <Menu.Item onClick={logout} icon={<LogoutOutlined />} style={{ marginLeft: 'auto' }} >
+                Logout
+              </Menu.Item>
+            </Menu.ItemGroup>
+
+          </SubMenu>
+
+        </>
+      )}
+
     </Menu>
   );
 };
