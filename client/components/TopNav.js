@@ -72,16 +72,16 @@ const TopNav = () => {
         </>
       )}
 
+
       {user !== null && (
         <>
           <SubMenu key="Submenu" icon={<CoffeeOutlined />} title={user && user.name} style={{ marginLeft: 'auto' }}>
-            <Menu.ItemGroup>
-              <Menu.Item onClick={logout} icon={<LogoutOutlined />} style={{ marginLeft: 'auto' }} >
-                Logout
-              </Menu.Item>
-            </Menu.ItemGroup>
+            <Item key="Logout" onClick={logout} icon={<LogoutOutlined />} >
+              Logout
+            </Item>
 
           </SubMenu>
+
 
         </>
       )}

@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { SyncOutlined } from "@ant-design/icons";
@@ -16,6 +16,12 @@ const Login = () => {
 
   // router
   const router = useRouter();
+
+  const { user } = state
+
+  useEffect(() => {
+    if (user !== null) router.push('/')
+  }, [user])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,13 +73,17 @@ const Login = () => {
             required
           />
 
-          <button
-            type="submit"
-            className="btn btn-block btn-primary"
-            disabled={!email || !password || loading}
-          >
-            {loading ? <SyncOutlined spin /> : "Submit"}
-          </button>
+          <div className="d-grid gap-2">
+            <button
+              type="submit"
+              className="btn btn-block btn-primary"
+              disabled={!email || !password || loading}
+            >
+              {loading ? <SyncOutlined spin /> : "Submit"}
+            </button>
+          </div>
+
+
         </form>
 
         <p className="text-center p-3">
