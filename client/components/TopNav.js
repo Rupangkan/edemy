@@ -3,6 +3,7 @@ import { Menu } from "antd";
 import Link from "next/link";
 import {
   AppstoreOutlined,
+  DashboardOutlined,
   CoffeeOutlined,
   LoginOutlined,
   LogoutOutlined,
@@ -13,7 +14,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 
-const { Item, SubMenu } = Menu;
+const { Item, SubMenu, ItemGroup } = Menu;
 
 const TopNav = () => {
   const [current, setCurrent] = useState("");
@@ -76,10 +77,16 @@ const TopNav = () => {
       {user !== null && (
         <>
           <SubMenu key="Submenu" icon={<CoffeeOutlined />} title={user && user.name} style={{ marginLeft: 'auto' }}>
-            <Item key="Logout" onClick={logout} icon={<LogoutOutlined />} >
-              Logout
-            </Item>
-
+            <ItemGroup>
+              <Item key="/user" icon={<DashboardOutlined />}>
+                <Link href="/user">
+                  <a>Dashboard</a>
+                </Link>
+              </Item>
+              <Item key="Logout" onClick={logout} icon={<LogoutOutlined />} >
+                Logout
+              </Item>
+            </ItemGroup>
           </SubMenu>
 
 
