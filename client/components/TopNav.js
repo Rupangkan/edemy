@@ -4,6 +4,8 @@ import Link from "next/link";
 import {
   AppstoreOutlined,
   DashboardOutlined,
+  TeamOutlined,
+  CarryOutOutlined,
   CoffeeOutlined,
   LoginOutlined,
   LogoutOutlined,
@@ -49,6 +51,29 @@ const TopNav = () => {
         </Link>
       </Item>
 
+
+      {user && user.role && user.role.includes("Instructor") ? (
+        <Item
+          key="/instructor/course/create"
+          onClick={(e) => setCurrent(e.key)}
+          icon={<CarryOutOutlined />}
+        >
+          <Link href="/instructor/course/create">
+            <a>Create Course</a>
+          </Link>
+        </Item>
+      ) : (
+        <Item
+          key="/user/become-instructor"
+          onClick={(e) => setCurrent(e.key)}
+          icon={<TeamOutlined />}
+        >
+          <Link href="/user/become-instructor">
+            <a>Become Instructor</a>
+          </Link>
+        </Item>
+      )}
+
       {user === null && (
         <>
           <Item
@@ -73,6 +98,18 @@ const TopNav = () => {
         </>
       )}
 
+      {user && user.role && user.role.includes("Instructor") && (
+        <Item
+          key="/instructor"
+          onClick={(e) => setCurrent(e.key)}
+          icon={<TeamOutlined />}
+          className="float-right"
+        >
+          <Link href="/instructor">
+            <a>Instructor</a>
+          </Link>
+        </Item>
+      )}
 
       {user !== null && (
         <>
@@ -92,6 +129,8 @@ const TopNav = () => {
 
         </>
       )}
+
+
 
     </Menu>
   );
