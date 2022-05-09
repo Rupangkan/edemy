@@ -1,5 +1,5 @@
 import User from "../models/user";
-// import Course from "../models/course";
+import Course from "../models/course";
 import queryString from "query-string";
 
 export const makeInstructor = async (req, res) => {
