@@ -209,3 +209,49 @@ export const update = async (req, res) => {
         console.log(err)
     }
 }
+
+export const removeLesson = async (req, res) => {
+    const { slug, lessonId } = req.params
+    const course = await Course.findOne({ slug }).exec()
+
+    if (req.user._id != course.instructor) {
+        return res.status(400).send("Unauthorized")
+    }
+
+    const deletedCourse = await Course.findByIdAndUpdate(course._id, {
+        $pull: { lessons: { _id: lessonId } },
+    }).exec()
+
+    res.json({ ok: true })
+}
+
+export const updateLesson = async (req, res) => {
+    // console.log("Lesson Updated", req.body)
+    try {
+        const { slug } = req.params
+        const course = await Course.findOne({ slug }).select("instructor").exec()
+        const { _id, title, content, video, free_preview } = req.body
+
+        console.log("compare", course.instructor._id != req.user._id)
+
+        if (course.instructor._id != req.user._id) {
+            return res.status(400).send("Unauthorized")
+        }
+
+        const courseUpdate = await Course.updateOne({ "lessons._id": _id }, {
+            $set: {
+                "lessons.$.title": title,
+                "lessong.$.content": content,
+                "lessons.$.video": video,
+                "lessons.$.free_preview": free_preview,
+            }
+        },
+            { new: true }
+        ).exec()
+        console.log("updated", courseUpdate)
+        res.json({ ok: true })
+    } catch (err) {
+        console.log(err)
+        return res.status(400).send("Update Lesson Failed")
+    }
+}

@@ -3,9 +3,11 @@ import axios from "axios";
 import InstructorRoute from "../../../../components/routes/InstructorRoute";
 import CourseCreateForm from "../../../../components/forms/CourseCreateForm";
 import Resizer from "react-image-file-resizer";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { useRouter } from "next/router";
-import { List, Avatar } from "antd";
+import { List, Avatar, Modal } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
+import UpdateLessonForm from "../../../../components/forms/UpdateLessonForm";
 
 const { Item } = List;
 
@@ -24,6 +26,13 @@ const CourseEdit = () => {
     const [image, setImage] = useState({});
     const [preview, setPreview] = useState("");
     const [uploadButtonText, setUploadButtonText] = useState("Upload Image");
+
+    // state for lesson update
+    const [visible, setVisible] = useState(false)
+    const [current, setCurrent] = useState({})
+    const [uploadVideoButtonText, setUploadVideoButtonText] = useState("Upload Video")
+    const [progress, setProgress] = useState(0)
+    const [uploading, setUploading] = useState(false)
 
     // router
     const router = useRouter();
@@ -91,7 +100,7 @@ const CourseEdit = () => {
                 ...values,
                 image,
             });
-            toast("Course updated!");
+            toast.success("Course updated!");
             // router.push("/instructor");
         } catch (err) {
             toast(err.response.data);
@@ -123,6 +132,66 @@ const CourseEdit = () => {
         // console.log("LESSONS REARRANGED RES => ", data);
         toast("Lessons rearranged successfully");
     };
+
+    const handleDelete = async (index) => {
+        console.log("Delete Lesson")
+        const answer = window.confirm("Are you sure you want to delete?")
+        if (!answer) return;
+
+        let allLessons = values.lessons
+        const removed = allLessons.splice(index, 1)
+        // console.log("removed ", removed[0]._id)
+        setValues({ ...values, lessons: allLessons })
+        // send request to server
+        const { data } = await axios.put(`/api/course/${slug}/${removed[0]._id}`)
+        console.log("Lesson Deleted => ", data)
+
+    }
+
+    const handleVideo = async (e) => {
+        // remove previous video
+        if (current.video && current.video.location) {
+            const res = await axios.post(
+                `api/course/video-remove/${values.instructor._id}`,
+                current.video
+            )
+            console.log("Removed ==> ", res)
+        }
+
+        // upload 
+        const file = e.target.files[0]
+        setUploadVideoButtonText(file.names)
+        setUploading(true)
+        // send video as form data
+        const videoData = new FormData()
+        videoData.append('video', file)
+        videoData.append('courseId', values._id)
+        // save progress bar and send video as form data to backend
+        const { data } = await axios.post(`/api/course/video-upload/${values.instructor._id}`, videoData, {
+            onUploadProgress: (e) => {
+                setProgress(Math.round((100 * e.loaded) / e.total))
+            }
+        })
+        console.log(data)
+        toast.success("Video updated")
+        setValues({ ...values, video: data })
+        setUploading(false)
+    }
+
+    const handleUpdateLesson = async (e) => {
+        // console.log("handle update lesson")
+        e.preventDefault()
+        const { data } = await axios.put(`/api/course/lesson/${slug}/${current._id}`, current)
+        setUploadButtonText("Upload Video")
+        setVisible(false)
+        if (data.ok) {
+            let arr = values.lessons;
+            const index = arr.findIndex((el) => el._id === current._id);
+            arr[index] = current;
+            setValues({ ...values, lessons: arr });
+            toast.success("Lesson updated");
+        }
+    }
 
     return (
         <InstructorRoute>
@@ -161,14 +230,32 @@ const CourseEdit = () => {
                                 onDrop={(e) => handleDrop(e, index)}
                             >
                                 <Item.Meta
+                                    onClick={() => {
+                                        setVisible(true)
+                                        setCurrent(item)
+                                    }}
                                     avatar={<Avatar>{index + 1}</Avatar>}
                                     title={item.title}
                                 ></Item.Meta>
+
+                                <DeleteOutlined onClick={() => handleDelete(index)} className="text-danger float-right" />
                             </Item>
                         )}
                     ></List>
                 </div>
             </div>
+            <Modal title="Update Lesson" centered visible={visible} onCancel={() => setVisible(false)} footer={null} >
+                {/* Update Lesson form */}
+                {/* <pre>{JSON.stringify(current, null, 4)}</pre> */}
+                <UpdateLessonForm current={current}
+                    setCurrent={setCurrent}
+                    handleVideo={handleVideo}
+                    handleUpdateLesson={handleUpdateLesson}
+                    uploadVideoButtonText={uploadVideoButtonText}
+                    progress={progress}
+                    uploading={uploading}
+                />
+            </Modal>
         </InstructorRoute>
     );
 };
