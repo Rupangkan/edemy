@@ -103,7 +103,7 @@ const CourseEdit = () => {
                 image,
             });
             toast.success("Course updated!");
-            // router.push("/instructor");
+            router.push("/instructor");
         } catch (err) {
             toast(err.response.data);
         }

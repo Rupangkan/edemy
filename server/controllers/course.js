@@ -1,9 +1,12 @@
 import AWS from "aws-sdk";
 import { nanoid } from "nanoid";
 import Course from "../models/course";
+import User from "../models/user"
 import slugify from "slugify";
 import { type } from "os";
 import { readFileSync } from 'fs'
+import Completed from "../models/completed";
+
 
 const awsConfig = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -306,5 +309,141 @@ export const courses = async (req, res) => {
     res.json(all);
 };
 
+export const checkEnrollment = async (req, res) => {
+    const { courseId } = req.params;
+    // find courses of the currently logged in user
+    const user = await User.findById(req.user._id).exec();
+    // check if course id is found in user courses array
+    let ids = [];
+    let length = user.courses && user.courses.length;
+    for (let i = 0; i < length; i++) {
+        ids.push(user.courses[i].toString());
+    }
+    console.log("Ids ==> ", ids)
+    console.log("CourseId ==> ", courseId)
+    res.json({
+        status: ids.includes(courseId),
+        course: await Course.findById(courseId).exec(),
+    });
+};
+
+export const freeEnrollment = async (req, res) => {
+    try {
+        // check if course is free or paid
+        const course = await Course.findById(req.params.courseId).exec();
+        if (course.paid) return;
+
+        const result = await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $addToSet: { courses: course._id },
+            },
+            { new: true }
+        ).exec();
+        console.log(result);
+        res.json({
+            message: "Congratulations! You have successfully enrolled",
+            course,
+        });
+    } catch (err) {
+        console.log("Free enrollment error", err);
+        return res.status(400).send("Enrollment create failed");
+    }
+};
+
+export const paidEnrollment = async (req, res) => {
+    try {
+        // check if course is free or paid
+        const course = await Course.findById(req.params.courseId).exec();
+        if (!course.paid) return;
+
+        const result = await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $addToSet: { courses: course._id },
+            },
+            { new: true }
+        ).exec();
+        console.log(result);
+        res.json({
+            message: "Congratulations! You have successfully enrolled",
+            course,
+        });
+    } catch (err) {
+        console.log("Paid enrollment error", err);
+        return res.status(400).send("Enrollment create failed");
+    }
+};
 
 
+export const userCourses = async (req, res) => {
+    const user = await User.findById(req.user._id).exec();
+    const courses = await Course.find({ _id: { $in: user.courses } })
+        .populate("instructor", "_id name")
+        .exec();
+    res.json(courses);
+};
+
+
+export const markCompleted = async (req, res) => {
+    const { courseId, lessonId } = req.body;
+    // console.log(courseId, lessonId);
+    // find if user with that course is already created
+    const existing = await Completed.findOne({
+        user: req.user._id,
+        course: courseId,
+    }).exec();
+
+    if (existing) {
+        // update
+        const updated = await Completed.findOneAndUpdate(
+            {
+                user: req.user._id,
+                course: courseId,
+            },
+            {
+                $addToSet: { lessons: lessonId },
+            }
+        ).exec();
+        res.json({ ok: true });
+    } else {
+        // create
+        const created = await new Completed({
+            user: req.user._id,
+            course: courseId,
+            lessons: lessonId,
+        }).save();
+        res.json({ ok: true });
+    }
+};
+
+export const listCompleted = async (req, res) => {
+    try {
+        const list = await Completed.findOne({
+            user: req.user._id,
+            course: req.body.courseId,
+        }).exec();
+        list && res.json(list.lessons);
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+export const markIncomplete = async (req, res) => {
+    try {
+        const { courseId, lessonId } = req.body;
+
+        const updated = await Completed.findOneAndUpdate(
+            {
+                user: req.user._id,
+                course: courseId,
+            },
+            {
+                $pull: { lessons: lessonId },
+            }
+        ).exec();
+        res.json({ ok: true });
+    } catch (err) {
+        console.log(err);
+    }
+};

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
+const { ObjectId } = Schema;
 
 const userSchema = new Schema(
   {
@@ -29,6 +30,7 @@ const userSchema = new Schema(
       default: ["Student"],
       enum: ["Student", "Instructor", "Admin"],
     },
+    courses: [{ type: ObjectId, ref: "Course" }],
     stripe_account_id: "",
     stripe_seller: {},
     stripeSession: {},
