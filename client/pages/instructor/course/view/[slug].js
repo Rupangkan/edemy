@@ -119,7 +119,7 @@ const CourseView = () => {
             if (!answer) return;
             const { data } = await axios.put(`/api/course/publish/${courseId}`);
             setCourse(data);
-            toast("Congrats! Your course is live");
+            toast.success("Congrats! Your course is live");
         } catch (err) {
             toast("Course publish failed. Try again");
         }
@@ -133,7 +133,7 @@ const CourseView = () => {
             if (!answer) return;
             const { data } = await axios.put(`/api/course/unpublish/${courseId}`);
             setCourse(data);
-            toast("Your course is unpublished");
+            toast.warn("Your course is unpublished");
         } catch (err) {
             toast("Course publish failed. Try again");
         }

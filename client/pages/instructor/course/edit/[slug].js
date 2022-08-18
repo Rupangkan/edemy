@@ -3,7 +3,7 @@ import axios from "axios";
 import InstructorRoute from "../../../../components/routes/InstructorRoute";
 import CourseCreateForm from "../../../../components/forms/CourseCreateForm";
 import Resizer from "react-image-file-resizer";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import { useRouter } from "next/router";
 import { List, Avatar, Modal } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
@@ -16,7 +16,7 @@ const CourseEdit = () => {
     const [values, setValues] = useState({
         name: "",
         description: "",
-        price: "9.99",
+        price: "99.99",
         uploading: false,
         paid: true,
         category: "",
@@ -30,7 +30,9 @@ const CourseEdit = () => {
     // state for lesson update
     const [visible, setVisible] = useState(false)
     const [current, setCurrent] = useState({})
-    const [uploadVideoButtonText, setUploadVideoButtonText] = useState("Upload Video")
+    const [uploadVideoButtonText, setUploadVideoButtonText] = useState(
+        "Upload Video"
+    )
     const [progress, setProgress] = useState(0)
     const [uploading, setUploading] = useState(false)
 
@@ -150,7 +152,7 @@ const CourseEdit = () => {
 
     const handleVideo = async (e) => {
         // remove previous video
-        if (current.video && current.video.location) {
+        if (current.video && current.video.Location) {
             const res = await axios.post(
                 `api/course/video-remove/${values.instructor._id}`,
                 current.video
@@ -167,14 +169,19 @@ const CourseEdit = () => {
         videoData.append('video', file)
         videoData.append('courseId', values._id)
         // save progress bar and send video as form data to backend
-        const { data } = await axios.post(`/api/course/video-upload/${values.instructor._id}`, videoData, {
-            onUploadProgress: (e) => {
-                setProgress(Math.round((100 * e.loaded) / e.total))
+        const { data } = await axios.post(`/api/course/video-upload/${values.instructor._id}`,
+            videoData,
+            {
+                onUploadProgress: (e) => {
+                    setProgress(Math.round((100 * e.loaded) / e.total))
+                }
             }
-        })
+        )
         console.log(data)
         toast.success("Video updated")
-        setValues({ ...values, video: data })
+        setCurrent({ ...current, video: data })
+        console.log("Values ==> ", values)
+        console.log("Current ==> ", current)
         setUploading(false)
     }
 
